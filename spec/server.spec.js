@@ -53,5 +53,20 @@ describe('/api', () => {
       });
     });
     it('GET - returns 404 if given non existant topic', () => request.get('/api/topics/competenttraincompanies/articles').expect(404));
+    it('POST - returns 200 and an object with the posted value', () => {
+      const catObj = { title: 'An underappreciated culinary opportunity?', body: 'Probably, but I\'m not going to try it', created_by: '3' };
+      return request.post('/api/topics/cats/articles').send(catObj).expect(201).then(({ body }) => {
+        expect(body.posted[0]).to.haveOwnProperty('article_id');
+        expect(body.posted[0].article_id).to.equal(13);
+      });
+    });
+    it('POST - returns 400 if not enough fields are provided', () => {
+      const catObj = { body: 'Probably, but I\'m not going to try it', created_by: '3' };
+      return request.post('/api/topics/cats/articles').send(catObj).expect(400);
+    });
+    it('POST - returns 404 if topic parameter doesnt exist', () => {
+      const catObj = { title: 'An underappreciated culinary opportunity?', body: 'Probably, but I\'m not going to try it', created_by: '3' };
+      return request.post('/api/topics/bats/articles').send(catObj).expect(404);
+    });
   });
 });

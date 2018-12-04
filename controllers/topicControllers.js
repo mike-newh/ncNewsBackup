@@ -38,6 +38,13 @@ exports.getArticlesByTopic = (req, res, next) => {
     });
 };
 
-
-// res.status(200).json({ topics });
-//   return Promise.all([connection('articles').where({ topic }), queryCount])
+exports.postArticleByTopic = (req, res, next) => {
+  const newObj = JSON.parse(JSON.stringify(req.body));
+  if (!newObj.title || !newObj.body || !newObj.created_by) return next({ status: 400, message: 'Missing input field(s)' });
+  newObj.topic = req.params.topic;
+  connection('articles').insert(newObj).returning('*')
+    .then((posted) => {
+      res.status(201).json({ posted });
+    })
+    .catch(next);
+};
