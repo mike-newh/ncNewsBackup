@@ -18,11 +18,22 @@ exports.postTopic = (req, res, next) => {
 
 exports.getArticlesByTopic = (req, res, next) => {
   const { topic } = req.params;
+  const { limit = 10 } = req.query;
+  const { sort_by = 'created_at' } = req.query;
+  const { sort_ascending = false } = req.query;
+  const { page } = req.query;
   return connection('articles').select('articles.title', 'articles.topic', 'articles.created_by AS author', 'articles.article_id', 'articles.body', 'articles.created_at', 'articles.votes').count('comments.comment_id AS comment_count').groupBy('articles.article_id')
-    .join('comments', 'comments.article_id', '=', 'articles.article_id')
+    .leftJoin('comments', 'comments.article_id', '=', 'articles.article_id')
     .where({ topic })
+    .limit(limit)
+    .orderBy(sort_by, sort_ascending ? 'asc' : 'desc')
+    .modify((query) => {
+      if (page) {
+        query.offset((page - 1) * limit);
+      }
+    })
     .then((articles) => {
-      console.log(articles);
+      if (!articles.length) return next({ status: 404, message: 'Page not found' });
       res.status(200).json({ articles });
     });
 };

@@ -16,3 +16,7 @@ exports.handle400 = (err, req, res, next) => {
     res.status(codes[err.code]).send({ status: codes[err.code], message: messages[err.code] });
   } else next(err);
 };
+
+exports.handle404 = (err, req, res, next) => {
+  if (err.status === 404) res.status(404).send({ err });
+};
