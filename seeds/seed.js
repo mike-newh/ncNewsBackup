@@ -19,6 +19,7 @@ exports.seed = function (knex, Promise) {
     .then((articlesRows) => {
       const [articles, users] = articlesRows;
       const articleLookup = makeArticleLookup(articles);
-      return knex('comments').insert(formatArticles(commentData, articleLookup, users));
+      const formattedArtis = formatArticles(commentData, articleLookup, users);
+      return knex('comments').insert(formattedArtis);
     });
 };
