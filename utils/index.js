@@ -5,6 +5,7 @@ exports.artDateFormat = (articleData, lookupObj) => articleData.map((article) =>
   newArt.title = article.title;
   newArt.topic = article.topic;
   newArt.body = article.body;
+  newArt.votes = article.votes;
   newArt.created_at = moment(article.created_at).format('YYYY-MM-DD');
   newArt.created_by = lookupObj[article.created_by];
   return newArt;

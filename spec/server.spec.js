@@ -70,6 +70,43 @@ describe('/api', () => {
     });
   });
   describe('/articles', () => {
-    it('returns all articles with comment count and author name', () => request.get('/api/articles').expect(200));
+    it('GET - returns all articles with username and comment counts attached', () => request.get('/api/articles').expect(200).then(({ body }) => {
+      expect(body.articles).to.have.length(10);
+      expect(body.articles[0]).to.have.all.keys('author', 'title', 'article_id', 'votes', 'comment_count', 'created_at', 'topic');
+      expect(body.articles[3]).to.have.all.keys('author', 'title', 'article_id', 'votes', 'comment_count', 'created_at', 'topic');
+    }));
+    it('GET/QUERIES - can be limited to x articles', () => request.get('/api/articles?limit=5').expect(200).then(({ body }) => {
+      expect(body.articles).to.have.length(5);
+    }));
+    it('GET/QUERIES - can be sorted by column', () => request.get('/api/articles?limit=5&sort_by=article_id').expect(200).then(({ body }) => {
+      expect(body.articles).to.have.length(5);
+      expect(body.articles[0].article_id).to.equal(12);
+      expect(body.articles[1].article_id).to.equal(11);
+    }));
+    it('GET/QUERIES - can be sorted by column and sorted ascendingly', () => request.get('/api/articles?limit=7&sort_by=article_id&sort_ascending=true').expect(200).then(({ body }) => {
+      expect(body.articles).to.have.length(7);
+      expect(body.articles[0].article_id).to.equal(1);
+      expect(body.articles[1].article_id).to.equal(2);
+    }));
+    it('GET/QUERIES - can be given a page query to offset results', () => request.get('/api/articles?limit=6&sort_by=article_id&sort_ascending=true&page=2').expect(200).then(({ body }) => {
+      expect(body.articles).to.have.length(6);
+      expect(body.articles[0].article_id).to.equal(7);
+      expect(body.articles[1].article_id).to.equal(8);
+    }));
+  });
+  describe.only('/api/articles/:article_id', () => {
+    it('PATCH - can increment article votes up', () => request.patch('/api/articles/7/').send({ inc_votes: 5 }).expect(201).then(({ body }) => {
+      expect(body.modifiedObject[0].title).to.equal('Z');
+      expect(body.modifiedObject[0].votes).to.equal(5);
+    }));
+    it('PATCH - can increment article votes down', () => request.patch('/api/articles/1/').send({ inc_votes: -10 }).expect(201).then(({ body }) => {
+      expect(body.modifiedObject[0].title).to.equal('Living in the shadow of a great man');
+      expect(body.modifiedObject[0].votes).to.equal(90);
+    }));
+    xit('PATCH - an invalid article id will 404', () => request.patch('/api/articles/476/').send({ inc_votes: -10 }).expect(404));
+    it('DELETE - deleted the article associated with the given article id', () => request.delete('/api/articles/1/').expect(202).then((res) => {
+      console.log(res.body);
+      expect(res.body).to.eql({});
+    }));
   });
 });
