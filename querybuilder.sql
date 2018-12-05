@@ -1,2 +1,2 @@
 \c test_nc_news
-SELECT * from articles where topic = 'mitch';
+SELECT articles.created_by AS author, articles.title, articles.article_id, articles.votes, articles.created_at, articles.topic, COUNT(comments.comment_id) from articles JOIN users ON users.user_id = articles.created_by LEFT JOIN comments ON comments.article_id = articles.article_id GROUP BY articles.article_id;

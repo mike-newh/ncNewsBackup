@@ -69,4 +69,7 @@ describe('/api', () => {
       return request.post('/api/topics/bats/articles').send(catObj).expect(404);
     });
   });
+  describe('/articles', () => {
+    it('returns all articles with comment count and author name', () => request.get('/api/articles').expect(200));
+  });
 });

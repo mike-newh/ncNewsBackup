@@ -9,7 +9,6 @@ exports.artDateFormat = (articleData, lookupObj) => articleData.map((article) =>
   newArt.created_by = lookupObj[article.created_by];
   return newArt;
 });
-
 // article.created_at = moment(article.created_at).format('YYYY-MM-DD');
 // article.created_by = lookupObj[article.created_by];
 // return article;
