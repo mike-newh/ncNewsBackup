@@ -131,10 +131,41 @@ describe('/api', () => {
       expect(body.comments[0].comment_id).to.equal(5);
       expect(body.comments[1].comment_id).to.equal(6);
     }));
-    it.only('POST - takes a body and user id and posts the comment to the article', () => request.post('/api/articles/2/comments').send({ body: 'Transpennine express is an exceptionally poor rail operator', user_id: '3' }).expect(201).then(({ body }) => {
+    it('POST - takes a body and user id and posts the comment to the article', () => request.post('/api/articles/2/comments').send({ body: 'Transpennine express is an exceptionally poor rail operator', user_id: '3' }).expect(201).then(({ body }) => {
       expect(body.postedComment[0]).to.have.all.keys('body', 'comment_id', 'article_id', 'user_id', 'created_at', 'votes');
       expect(body.postedComment[0].comment_id).to.be.a('number');
       expect(body.postedComment[0].comment_id).to.be.greaterThan(0);
+    }));
+    it('POST - failing to provide all comment fields will return 400', () => request.post('/api/articles/2/comments').send({ badComment: 'I love transpennine' }).expect(400));
+    it('POST - a bad article parameter will return a 404', () => request.post('/api/articles/999/comments').send({ body: 'Transpennine express is an exceptionally poor rail operator', user_id: '3' }).expect(404));
+    it('POST - a non existant user will return a 404', () => request.post('/api/articles/999/comments').send({ body: 'Transpennine express is an exceptionally poor rail operator', user_id: '98' }).expect(404));
+  });
+  describe('/:article_id/comments/:comment_id', () => {
+    it('PATCH - Allows a comment to be voted up', () => request.patch('/api/articles/2/comments/1').send({ inc_votes: 7 }).expect(201).then(({ body }) => {
+      expect(body.modifiedObject[0].votes).to.equal(23);
+    }));
+    it('PATCH - Allows a comment to be voted up', () => request.patch('/api/articles/7659/comments/1').send({ inc_votes: -6 }).expect(201).then(({ body }) => {
+      expect(body.modifiedObject[0].votes).to.equal(10);
+    }));
+    xit('PATCH - returns 404 if comment id does not exist', () => request.patch('/api/articles/2/comments/107').send({ inc_votes: 1 }).expect(404));
+    it('DELETE - Deletes a comment and returns an empty object', () => request.delete('/api/articles/2/comments/1').expect(202).then(({ body }) => { expect(body).to.eql({}); }));
+  });
+  describe('/api/users & /:user_id', () => {
+    it('GET - /users returns 200 and all users', () => request.get('/api/users').expect(200).then(({ body }) => {
+      expect(body.users).that.have.length(3);
+      expect(body.users[0]).to.have.all.keys('user_id', 'username', 'avatar_url', 'name');
+    }));
+    it('GET - /users/:user_id returns 200 and a user object', () => request.get('/api/users/2').expect(200).then(({ body }) => {
+      expect(body.user[0]).to.have.all.keys('user_id', 'username', 'avatar_url', 'name');
+      expect(body.user[0].name).to.equal('sam');
+    }));
+    it('GET - requesting a non-existant user-id will return 404', () => request.get('/api/users/27').expect(404));
+    it('GET - requesting a user id with bad syntax will return 400', () => request.get('/api/users/dave').expect(400));
+  });
+  describe.only('/api', () => {
+    it('GET - returns a json of all available endpoints', () => request.get('/api').expect(200).then(({ body }) => {
+      expect(body.paths[0]).to.have.all.keys('path', 'methods');
+      expect(body.paths[0].methods).to.be.an('array');
     }));
   });
 });
