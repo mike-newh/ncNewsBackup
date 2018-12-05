@@ -94,7 +94,7 @@ describe('/api', () => {
       expect(body.articles[1].article_id).to.equal(8);
     }));
   });
-  describe.only('/api/articles/:article_id', () => {
+  describe('/api/articles/:article_id', () => {
     it('PATCH - can increment article votes up', () => request.patch('/api/articles/7/').send({ inc_votes: 5 }).expect(201).then(({ body }) => {
       expect(body.modifiedObject[0].title).to.equal('Z');
       expect(body.modifiedObject[0].votes).to.equal(5);
@@ -105,8 +105,36 @@ describe('/api', () => {
     }));
     xit('PATCH - an invalid article id will 404', () => request.patch('/api/articles/476/').send({ inc_votes: -10 }).expect(404));
     it('DELETE - deleted the article associated with the given article id', () => request.delete('/api/articles/1/').expect(202).then((res) => {
-      console.log(res.body);
       expect(res.body).to.eql({});
+    }));
+  });
+  describe('/api/articles/:article_id/comments', () => {
+    it('GET - returns an array of comments with creator usernames', () => request.get('/api/articles/1/comments?limit=99').expect(200).then(({ body }) => {
+      expect(body.comments[0]).that.have.all.keys('comment_id', 'votes', 'created_at', 'author', 'body');
+      expect(body.comments).to.have.length(13);
+    }));
+    it('GET/QUERIES - able to limit responses', (() => request.get('/api/articles/1/comments?limit=7').expect(200).then(({ body }) => {
+      expect(body.comments).to.have.length(7);
+    })));
+    it('GET/QUERIES - limit defaults at 10', (() => request.get('/api/articles/1/comments').expect(200).then(({ body }) => {
+      expect(body.comments).to.have.length(10);
+    })));
+    it('GET/QUERIES - Able to sort, defaulting to descending dates', () => request.get('/api/articles/1/comments?limit=13').expect(200).then(({ body }) => {
+      expect(body.comments[0].body).to.equal('The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.');
+      expect(body.comments[12].body).to.equal('This morning, I showered for nine minutes.');
+    }));
+    it('GET/QUERIES - Able to change sort order', () => request.get('/api/articles/1/comments?limit=13&sort_ascending=true').expect(200).then(({ body }) => {
+      expect(body.comments[12].body).to.equal('The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.');
+      expect(body.comments[0].body).to.equal('This morning, I showered for nine minutes.');
+    }));
+    it('GET/QUERIES - Allows a page query to specify offset', () => request.get('/api/articles/1/comments?limit=3&p=2&sort_by=comment_id&sort_ascending=true').expect(200).then(({ body }) => {
+      expect(body.comments[0].comment_id).to.equal(5);
+      expect(body.comments[1].comment_id).to.equal(6);
+    }));
+    it.only('POST - takes a body and user id and posts the comment to the article', () => request.post('/api/articles/2/comments').send({ body: 'Transpennine express is an exceptionally poor rail operator', user_id: '3' }).expect(201).then(({ body }) => {
+      expect(body.postedComment[0]).to.have.all.keys('body', 'comment_id', 'article_id', 'user_id', 'created_at', 'votes');
+      expect(body.postedComment[0].comment_id).to.be.a('number');
+      expect(body.postedComment[0].comment_id).to.be.greaterThan(0);
     }));
   });
 });

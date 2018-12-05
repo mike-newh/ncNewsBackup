@@ -29,12 +29,11 @@ exports.patchArticleById = (req, res, next) => {
     .increment('votes', inc_votes)
     .returning('*')
     .then((modifiedObject) => {
-      if (!modifiedObject.length) return next({ status: 404, message: 'Article id not found' });
+      if (!modifiedObject.length) next({ status: 404, message: 'Article id not found' });
       res.status(201).json({ modifiedObject });
     })
     .else(next);
 };
-
 
 exports.delArticleById = (req, res, next) => {
   const { article_id } = req.params;
@@ -42,6 +41,36 @@ exports.delArticleById = (req, res, next) => {
     .returning('*')
     .then(() => {
       res.status(202).json({});
+    })
+    .catch(next);
+};
+
+exports.getCommentsByArticle = (req, res, next) => {
+  const { article_id } = req.params;
+  const { limit = 10 } = req.query;
+  const { sort_by = 'created_at' } = req.query;
+  const { sort_ascending = false } = req.query;
+  const { p } = req.query;
+  connection('comments').select('comments.comment_id', 'comments.votes', 'comments.created_at', 'users.username AS author', 'comments.body').join('users', 'users.user_id', '=', 'comments.user_id').where('article_id', article_id)
+    .limit(limit)
+    .orderBy(sort_by, sort_ascending ? 'asc' : 'desc')
+    .modify((query) => {
+      if (p) {
+        query.offset((p - 1) * limit);
+      }
+    })
+    .then((comments) => {
+      res.status(200).json({ comments });
+    });
+};
+
+exports.postCommentToArticle = (req, res, next) => {
+  const { user_id, body } = req.body;
+  const { article_id } = req.params;
+  const newComment = { user_id, body, article_id };
+  connection('comments').insert(newComment).returning('*')
+    .then((postedComment) => {
+      res.status(201).json({ postedComment });
     })
     .catch(next);
 };
