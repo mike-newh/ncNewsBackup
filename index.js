@@ -2,7 +2,9 @@
 const app = require('express')();
 const bodyParser = require('body-parser');
 const apiRouter = require('./routers/apiRouter');
-const { handleSqlErr, handle404, handle400 } = require('./errors');
+const {
+  handleSqlErr, handle404, handle400, handle405,
+} = require('./errors');
 const listEndpoints = require('express-list-endpoints');
 
 
@@ -10,7 +12,9 @@ app.use(bodyParser.json());
 
 app.use((req, res, next) => {
   if (req.url === '/api' || req.url === '/api/') {
-    res.status(200).json({ paths: listEndpoints(app) });
+    if (req.method === 'GET') {
+      res.status(200).json({ paths: listEndpoints(app) });
+    } else handle405(req, res, next);
   } else next();
 });
 

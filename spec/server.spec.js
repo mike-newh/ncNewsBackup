@@ -28,7 +28,7 @@ describe('/api', () => {
     }));
     it('POST - returns status 400 if a badly formatted input is provided', () => request.post('/api/topics').send({ transpennine: 'is really good' }).expect(400));
     it('POST - returns status 422 if topic already exists', () => request.post('/api/topics').send({ slug: 'mitch', description: 'aaaa' }).expect(422));
-    it('ALL - returns status 405 if user tries a non-get/post method', () => request.delete('/api/topics').expect(405));
+    it('OTHER - returns status 405 if user tries a non-get/post method', () => request.delete('/api/topics').expect(405));
   });
   describe('/api/topics/:topic/articles', () => {
     it('GET - returns an array of articles for a given topic', () => request.get('/api/topics/cats/articles').expect(200).then(({ body }) => {
@@ -84,6 +84,7 @@ describe('/api', () => {
       const catObj = { title: 'An underappreciated culinary opportunity?', body: 'Probably, but I\'m not going to try it', created_by: '674' };
       return request.post('/api/topics/cats/articles').send(catObj).expect(404);
     });
+    it('OTHER - returns status 405 if user tries an unavailable method', () => request.put('/api/topics/cats/articles').expect(405));
   });
   describe('/articles', () => {
     it('GET - returns all articles with username and comment counts attached', () => request.get('/api/articles').expect(200).then(({ body }) => {
@@ -120,6 +121,7 @@ describe('/api', () => {
       expect(body.articles[1].article_id).to.equal(8);
     }));
     it('GET/QUERIES - will return 400 if page is non number', () => request.get('/api/articles?page=pancakes').expect(400));
+    it('OTHER - returns status 405 if user tries an unavailable method', () => request.put('/api/articles').expect(405));
   });
   describe('/api/articles/:article_id', () => {
     it('GET - returns 200 and a single article by id', () => request.get('/api/articles/1').expect(200).then(({ body }) => {
@@ -144,6 +146,7 @@ describe('/api', () => {
     }));
     it('DELETE - a non integer id will return 400', () => request.delete('/api/articles/hello/').expect(400));
     it('DELETE - a non existing id will return 404', () => request.delete('/api/articles/674/').expect(404));
+    it('OTHER - returns status 405 if user tries an unavailable method', () => request.put('/api/articles/1').expect(405));
   });
   describe('/api/articles/:article_id/comments', () => {
     it('GET - returns an array of comments with creator usernames', () => request.get('/api/articles/1/comments?limit=99').expect(200).then(({ body }) => {
@@ -190,8 +193,9 @@ describe('/api', () => {
     it('POST - providing correct fields but with bad syntax will return 400', () => request.post('/api/articles/2/comments').send({ body: 'Transpennine express is an exceptionally poor rail operator', user_id: 'bary' }).expect(400));
     it('POST - a bad article parameter will return a 404', () => request.post('/api/articles/999/comments').send({ body: 'Transpennine express is an exceptionally poor rail operator', user_id: '3' }).expect(404));
     it('POST - a non existant user will return a 404', () => request.post('/api/articles/999/comments').send({ body: 'Transpennine express is an exceptionally poor rail operator', user_id: '98' }).expect(404));
+    it('OTHER - returns status 405 if user tries an unavailable method', () => request.put('/api/articles/1/comments').expect(405));
   });
-  describe.only('/:article_id/comments/:comment_id', () => {
+  describe('/:article_id/comments/:comment_id', () => {
     it('PATCH - Allows a comment to be voted up', () => request.patch('/api/articles/2/comments/1').send({ inc_votes: 7 }).expect(201).then(({ body }) => {
       expect(body.modifiedObject[0].votes).to.equal(23);
     }));
@@ -205,23 +209,28 @@ describe('/api', () => {
     it('DELETE - Deletes a comment and returns an empty object', () => request.delete('/api/articles/2/comments/1').expect(204).then(({ body }) => { expect(body).to.eql({}); }));
     it('DELETE - returns 404 if comment id does not exist', () => request.delete('/api/articles/2/comments/47431').expect(404));
     it('DELETE - returns 400 if comment id is not an integer', () => request.delete('/api/articles/2/comments/thisone').expect(400));
+    it('OTHER - returns status 405 if user tries an unavailable method', () => request.put('/api/articles/1/comments/1').expect(405));
   });
   describe('/api/users & /:user_id', () => {
     it('GET - /users returns 200 and all users', () => request.get('/api/users').expect(200).then(({ body }) => {
       expect(body.users).that.have.length(3);
       expect(body.users[0]).to.have.all.keys('user_id', 'username', 'avatar_url', 'name');
     }));
+    it('OTHER - /users - will return 405 if non-get method is used', () => request.delete('/api/users').expect(405));
     it('GET - /users/:user_id returns 200 and a user object', () => request.get('/api/users/2').expect(200).then(({ body }) => {
       expect(body.user[0]).to.have.all.keys('user_id', 'username', 'avatar_url', 'name');
       expect(body.user[0].name).to.equal('sam');
     }));
     it('GET - requesting a non-existant user-id will return 404', () => request.get('/api/users/27').expect(404));
     it('GET - requesting a user id with bad syntax will return 400', () => request.get('/api/users/dave').expect(400));
+    it('OTHER - /users/:user_id - will return 405 if non-get method is used', () => request.delete('/api/users/6').expect(405));
   });
+
   describe('/api', () => {
     it('GET - returns a json of all available endpoints', () => request.get('/api').expect(200).then(({ body }) => {
       expect(body.paths[0]).to.have.all.keys('path', 'methods');
       expect(body.paths[0].methods).to.be.an('array');
     }));
+    it('OTHER - /api - will return 405 if non-get method is used', () => request.delete('/api').expect(405));
   });
 });
