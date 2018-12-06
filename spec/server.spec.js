@@ -38,11 +38,21 @@ describe('/api', () => {
     it('GET/QUERIES - allows a query limit to be passed', () => request.get('/api/topics/mitch/articles?limit=5').expect(200).then(({ body }) => {
       expect(body.articles).to.have.length(5);
     }));
-    it('GET/QUERIES - results can be sorted by any column, defulting to descending', () => request.get('/api/topics/mitch/articles?sort_by=article_id').expect(200).then(({ body }) => {
+    it('GET/QUERIES - if limit query is non-number, returns 400', () => request.get('/api/topics/mitch/articles?limit=cats').expect(400));
+    it('GET/QUERIES - results can be sorted by any column, defulting to created_at (date)', () => request.get('/api/topics/mitch/articles?sort_by=article_id').expect(200).then(({ body }) => {
       expect(body.articles[0].article_id).to.equal(12);
       expect(body.articles[1].article_id).to.equal(11);
       expect(body.articles[2].article_id).to.equal(10);
     }));
+    it('GET/QUERIES - a bad input on sort_ascending will default to false', () => request.get('/api/topics/mitch/articles?sort_by=article_id&sort_ascending=donald').expect(200).then(({ body }) => {
+      expect(body.articles[0].article_id).to.equal(12);
+      expect(body.articles[1].article_id).to.equal(11);
+      expect(body.articles[2].article_id).to.equal(10);
+    }));
+    it('GET/QUERIES - a bad sort column will return 200 and default sort column if syntax is correct', () => request.get('/api/topics/mitch/articles?sort_by=transpennine').expect(200).then(({ body }) => {
+      expect(body.articles[0].article_id).to.equal(1);
+    }));
+    it('GET/QUERIES - a bad sort column will return 400 if the syntax is bad', () => request.get('/api/topics/mitch/articles?sort_by=5835').expect(400));
     it('GET/QUERIES - results can ordered to sort ascending', () => request.get('/api/topics/mitch/articles?sort_by=article_id&sort_ascending=true').expect(200).then(({ body }) => {
       expect(body.articles[0].article_id).to.equal(1);
       expect(body.articles[1].article_id).to.equal(2);
@@ -53,6 +63,7 @@ describe('/api', () => {
         expect(body.articles[0].article_id).to.equal(1);
       });
     });
+    it('GET/QUERIES - if page query is non-number, returns 400', () => request.get('/api/topics/mitch/articles?page=cats').expect(400));
     it('GET - returns 404 if given non existant topic', () => request.get('/api/topics/competenttraincompanies/articles').expect(404));
     it('POST - returns 200 and an object with the posted value', () => {
       const catObj = { title: 'An underappreciated culinary opportunity?', body: 'Probably, but I\'m not going to try it', created_by: '3' };
@@ -112,7 +123,7 @@ describe('/api', () => {
     it('PATCH - an incorrect vote object with non-number syntax return 400', () => request.patch('/api/articles/1/').send({ inc_votes: 'gravy' }).expect(400));
     it('PATCH - an incorrect vote object with float syntax return 400', () => request.patch('/api/articles/1/').send({ inc_votes: 7.5 }).expect(400));
     it('PATCH - an invalid article id will 404', () => request.patch('/api/articles/476/').send({ inc_votes: -10 }).expect(404));
-    it('DELETE - deleted the article associated with the given article id', () => request.delete('/api/articles/1/').expect(202).then((res) => {
+    it('DELETE - deleted the article associated with the given article id', () => request.delete('/api/articles/1/').expect(204).then((res) => {
       expect(res.body).to.eql({});
     }));
   });
@@ -156,7 +167,7 @@ describe('/api', () => {
       expect(body.modifiedObject[0].votes).to.equal(10);
     }));
     it('PATCH - returns 404 if comment id does not exist', () => request.patch('/api/articles/2/comments/107').send({ inc_votes: 1 }).expect(404));
-    it('DELETE - Deletes a comment and returns an empty object', () => request.delete('/api/articles/2/comments/1').expect(202).then(({ body }) => { expect(body).to.eql({}); }));
+    it('DELETE - Deletes a comment and returns an empty object', () => request.delete('/api/articles/2/comments/1').expect(204).then(({ body }) => { expect(body).to.eql({}); }));
   });
   describe('/api/users & /:user_id', () => {
     it('GET - /users returns 200 and all users', () => request.get('/api/users').expect(200).then(({ body }) => {

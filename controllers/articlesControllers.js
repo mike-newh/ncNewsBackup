@@ -41,7 +41,7 @@ exports.delArticleById = (req, res, next) => {
   connection('articles').where('articles.article_id', article_id).del()
     .returning('*')
     .then(() => {
-      res.status(202).json({});
+      res.status(204).json({});
     })
     .catch(next);
 };
@@ -95,7 +95,7 @@ exports.deleteComment = (req, res, next) => {
   connection('comments').where('comments.comment_id', comment_id).del()
     .returning('*')
     .then((deleted) => {
-      res.status(202).json({});
+      res.status(204).json({});
     })
     .catch(next);
 };

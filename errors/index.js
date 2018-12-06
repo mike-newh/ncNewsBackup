@@ -19,6 +19,8 @@ exports.handleSqlErr = (err, req, res, next) => {
   };
   if (codes[err.code]) {
     res.status(codes[err.code]).send({ status: codes[err.code], message: messages[err.code] });
+  } else if (err.code !== undefined) {
+    console.log('UTRACKED SQL ERROR ########--->', err);
   } else next(err);
 };
 

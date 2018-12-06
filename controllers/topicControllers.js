@@ -19,9 +19,15 @@ exports.postTopic = (req, res, next) => {
 exports.getArticlesByTopic = (req, res, next) => {
   const { topic } = req.params;
   const { limit = 10 } = req.query;
-  const { sort_by = 'created_at' } = req.query;
-  const { sort_ascending = false } = req.query;
+  if (isNaN(+limit)) return next({ status: 400, message: 'Bad limit syntax' });
+  let { sort_by } = req.query;
+  if (!isNaN(+sort_by)) return next({ status: 400, message: 'Bad column sort syntax' });
+  const validSorts = ['title', 'article_id', 'created_by', 'body', 'created_at'];
+  if (!validSorts.includes(sort_by)) sort_by = 'created_at';
+  let { sort_ascending } = req.query;
+  if (sort_ascending !== 'true') sort_ascending = false;
   const { page } = req.query;
+  if (page !== undefined && isNaN(+page)) return next({ status: 400, message: 'Bad page syntax' });
   return connection('articles').select('articles.title', 'articles.topic', 'articles.created_by AS author', 'articles.article_id', 'articles.body', 'articles.created_at', 'articles.votes').count('comments.comment_id AS comment_count').groupBy('articles.article_id')
     .leftJoin('comments', 'comments.article_id', '=', 'articles.article_id')
     .where({ topic })
