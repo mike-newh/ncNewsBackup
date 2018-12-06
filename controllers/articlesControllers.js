@@ -25,14 +25,15 @@ exports.getAllArticles = (req, res, next) => {
 exports.patchArticleById = (req, res, next) => {
   const { article_id } = req.params;
   const { inc_votes } = req.body;
+  if (typeof inc_votes !== 'number' || (`${inc_votes}`).includes('.')) return next({ status: 400, message: 'Bad input' });
   connection('articles').where('article_id', '=', article_id)
     .increment('votes', inc_votes)
     .returning('*')
     .then((modifiedObject) => {
-      if (!modifiedObject.length) next({ status: 404, message: 'Article id not found' });
+      if (!modifiedObject.length) return next({ status: 404, message: 'Article id not found' });
       res.status(201).json({ modifiedObject });
     })
-    .else(next);
+    .catch(next);
 };
 
 exports.delArticleById = (req, res, next) => {
@@ -65,7 +66,7 @@ exports.getCommentsByArticle = (req, res, next) => {
 };
 
 exports.postCommentToArticle = (req, res, next) => {
-  if (req.body.body === undefined || req.body.user_id === undefined) { next({ status: 400, message: 'Missing comment input fields' }); }
+  if (req.body.body === undefined || req.body.user_id === undefined) { return next({ status: 400, message: 'Missing comment input fields' }); }
   const { user_id, body } = req.body;
   const { article_id } = req.params;
   const newComment = { user_id, body, article_id };
@@ -86,7 +87,7 @@ exports.patchCommentById = (req, res, next) => {
       if (!modifiedObject.length) return next({ status: 404, message: 'comment id not found' });
       res.status(201).json({ modifiedObject });
     })
-    .else(next);
+    .catch(next);
 };
 
 exports.deleteComment = (req, res, next) => {

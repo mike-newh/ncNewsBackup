@@ -27,6 +27,7 @@ describe('/api', () => {
       expect(res.body.slug).to.equal('transpennine');
     }));
     it('POST - returns status 400 if a badly formatted input is provided', () => request.post('/api/topics').send({ transpennine: 'is really good' }).expect(400));
+    it('POST - returns status 422 if topic already exists', () => request.post('/api/topics').send({ slug: 'mitch', description: 'aaaa' }).expect(422));
     it('ALL - returns status 405 if user tries a non-get/post method', () => request.delete('/api/topics').expect(405));
   });
   describe('/api/topics/:topic/articles', () => {
@@ -68,6 +69,10 @@ describe('/api', () => {
       const catObj = { title: 'An underappreciated culinary opportunity?', body: 'Probably, but I\'m not going to try it', created_by: '3' };
       return request.post('/api/topics/bats/articles').send(catObj).expect(404);
     });
+    it('POST - returns 404 if user parameter doesnt exist', () => {
+      const catObj = { title: 'An underappreciated culinary opportunity?', body: 'Probably, but I\'m not going to try it', created_by: '674' };
+      return request.post('/api/topics/cats/articles').send(catObj).expect(404);
+    });
   });
   describe('/articles', () => {
     it('GET - returns all articles with username and comment counts attached', () => request.get('/api/articles').expect(200).then(({ body }) => {
@@ -103,7 +108,10 @@ describe('/api', () => {
       expect(body.modifiedObject[0].title).to.equal('Living in the shadow of a great man');
       expect(body.modifiedObject[0].votes).to.equal(90);
     }));
-    xit('PATCH - an invalid article id will 404', () => request.patch('/api/articles/476/').send({ inc_votes: -10 }).expect(404));
+    it('PATCH - an incorrect vote object with bad property names will 400', () => request.patch('/api/articles/1/').send({ vote: -10 }).expect(400));
+    it('PATCH - an incorrect vote object with non-number syntax return 400', () => request.patch('/api/articles/1/').send({ inc_votes: 'gravy' }).expect(400));
+    it('PATCH - an incorrect vote object with float syntax return 400', () => request.patch('/api/articles/1/').send({ inc_votes: 7.5 }).expect(400));
+    it('PATCH - an invalid article id will 404', () => request.patch('/api/articles/476/').send({ inc_votes: -10 }).expect(404));
     it('DELETE - deleted the article associated with the given article id', () => request.delete('/api/articles/1/').expect(202).then((res) => {
       expect(res.body).to.eql({});
     }));
@@ -147,7 +155,7 @@ describe('/api', () => {
     it('PATCH - Allows a comment to be voted up', () => request.patch('/api/articles/7659/comments/1').send({ inc_votes: -6 }).expect(201).then(({ body }) => {
       expect(body.modifiedObject[0].votes).to.equal(10);
     }));
-    xit('PATCH - returns 404 if comment id does not exist', () => request.patch('/api/articles/2/comments/107').send({ inc_votes: 1 }).expect(404));
+    it('PATCH - returns 404 if comment id does not exist', () => request.patch('/api/articles/2/comments/107').send({ inc_votes: 1 }).expect(404));
     it('DELETE - Deletes a comment and returns an empty object', () => request.delete('/api/articles/2/comments/1').expect(202).then(({ body }) => { expect(body).to.eql({}); }));
   });
   describe('/api/users & /:user_id', () => {
