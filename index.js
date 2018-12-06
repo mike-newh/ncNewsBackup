@@ -13,6 +13,7 @@ app.use((req, res, next) => {
     res.status(200).json({ paths: listEndpoints(app) });
   } else next();
 });
+
 app.use('/api', apiRouter);
 
 app.use(handle400);

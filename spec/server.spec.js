@@ -162,7 +162,7 @@ describe('/api', () => {
     it('GET - requesting a non-existant user-id will return 404', () => request.get('/api/users/27').expect(404));
     it('GET - requesting a user id with bad syntax will return 400', () => request.get('/api/users/dave').expect(400));
   });
-  describe.only('/api', () => {
+  describe('/api', () => {
     it('GET - returns a json of all available endpoints', () => request.get('/api').expect(200).then(({ body }) => {
       expect(body.paths[0]).to.have.all.keys('path', 'methods');
       expect(body.paths[0].methods).to.be.an('array');
