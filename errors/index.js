@@ -10,12 +10,14 @@ exports.handleSqlErr = (err, req, res, next) => {
     42703: 400,
     23505: 422,
     23503: 404,
+    '22P02': 400,
 
   };
   const messages = {
     42703: 'Bad Request',
     23505: 'Unprocessable entity (May be caused if item already exists)',
     23503: 'Page not found',
+    '22P02': 'invalid input syntax',
   };
   if (codes[err.code]) {
     res.status(codes[err.code]).send({ status: codes[err.code], message: messages[err.code] });
