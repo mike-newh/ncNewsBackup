@@ -5,7 +5,7 @@ exports.getAllArticles = (req, res, next) => {
   if (isNaN(+limit) || `${limit}`.includes('.')) return next({ status: 400, message: 'Bad limit syntax' });
   let { sort_by } = req.query;
   if (!isNaN(+sort_by)) return next({ status: 400, message: 'Bad column sort syntax' });
-  const validSorts = ['title', 'article_id', 'created_by', 'body', 'created_at'];
+  const validSorts = ['comment_count', 'title', 'article_id', 'created_by', 'body', 'created_at'];
   if (!validSorts.includes(sort_by)) sort_by = 'created_at';
   let { sort_ascending } = req.query;
   if (sort_ascending !== 'true') sort_ascending = false;
@@ -95,7 +95,7 @@ exports.getCommentsByArticle = (req, res, next) => {
 };
 
 exports.postCommentToArticle = (req, res, next) => {
-  if (req.body.body === undefined || req.body.user_id === undefined) { return next({ status: 400, message: 'Missing comment input fields' }); }
+  if (Object.keys(req.body).length !== 2 || req.body.body === undefined || req.body.user_id === undefined) { return next({ status: 400, message: 'Missing comment input fields' }); }
   const { user_id, body } = req.body;
   const { article_id } = req.params;
   const newComment = { user_id, body, article_id };
@@ -116,7 +116,7 @@ exports.patchCommentById = (req, res, next) => {
     .returning('*')
     .then(([comment]) => {
       if (!comment) return next({ status: 404, message: 'comment id not found' });
-      res.status(201).json({ comment });
+      res.status(200).json({ comment });
     })
     .catch(next);
 };

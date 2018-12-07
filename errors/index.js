@@ -11,7 +11,7 @@ exports.handleSqlErr = (err, req, res, next) => {
     23505: 422,
     23503: 404,
     '22P02': 400,
-
+    // 23503 is arguably a 404
   };
   const messages = {
     42703: 'Bad Request',
@@ -20,6 +20,7 @@ exports.handleSqlErr = (err, req, res, next) => {
     '22P02': 'invalid input syntax',
   };
   if (codes[err.code]) {
+    if (err.code === '23503' && err.constraint === 'comments_user_id_foreign') { return res.status(422).json({ err }); }
     res.status(codes[err.code]).send({ status: codes[err.code], message: messages[err.code] });
   } else if (err.code !== undefined) {
     console.log('UTRACKED SQL ERROR ########--->', err);

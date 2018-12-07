@@ -27,6 +27,8 @@ describe('/api', () => {
       expect(res.body.topic.slug).to.equal('transpennine');
     }));
     it('POST - returns status 400 if given slug as int', () => request.post('/api/topics').send({ slug: '4664', description: 'A truely subpar rail experience' }).expect(400));
+
+    it('POST - returns status 400 if given no description', () => request.post('/api/topics').send({ slug: 'freethings' }).expect(400));
     it('POST - returns status 400 if a badly formatted input is provided', () => request.post('/api/topics').send({ transpennine: 'is really good' }).expect(400));
     it('POST - returns status 422 if topic already exists', () => request.post('/api/topics').send({ slug: 'mitch', description: 'aaaa' }).expect(422));
     it('OTHER - returns status 405 if user tries a non-get/post method', () => request.delete('/api/topics').expect(405));
@@ -71,6 +73,7 @@ describe('/api', () => {
     it('POST - returns 200 and an object with the posted value', () => {
       const catObj = { title: 'An underappreciated culinary opportunity?', body: 'Probably, but I\'m not going to try it', created_by: '3' };
       return request.post('/api/topics/cats/articles').send(catObj).expect(201).then(({ body }) => {
+        console.log(body);
         expect(body.article).to.haveOwnProperty('article_id');
         expect(body.article.article_id).to.equal(13);
       });
@@ -201,17 +204,17 @@ describe('/api', () => {
     it('POST - failing to provide all comment fields will return 400', () => request.post('/api/articles/2/comments').send({ badComment: 'I love transpennine' }).expect(400));
     it('POST - providing correct fields but with bad syntax will return 400', () => request.post('/api/articles/2/comments').send({ body: 'Transpennine express is an exceptionally poor rail operator', user_id: 'bary' }).expect(400));
     it('POST - a bad article parameter will return a 404', () => request.post('/api/articles/999/comments').send({ body: 'Transpennine express is an exceptionally poor rail operator', user_id: '3' }).expect(404));
-    it('POST - a non existant user will return a 404', () => request.post('/api/articles/999/comments').send({ body: 'Transpennine express is an exceptionally poor rail operator', user_id: '98' }).expect(404));
+    it('POST - a non existant user will return a 422', () => request.post('/api/articles/999/comments').send({ body: 'Transpennine express is an exceptionally poor rail operator', user_id: '98' }).expect(422));
     it('OTHER - returns status 405 if user tries an unavailable method', () => request.put('/api/articles/1/comments').expect(405));
   });
   describe('/:article_id/comments/:comment_id', () => {
-    it('PATCH - Allows a comment to be voted up', () => request.patch('/api/articles/2/comments/1').send({ inc_votes: 7 }).expect(201).then(({ body }) => {
+    it('PATCH - Allows a comment to be voted up', () => request.patch('/api/articles/2/comments/1').send({ inc_votes: 7 }).expect(200).then(({ body }) => {
       expect(body.comment.votes).to.equal(23);
     }));
-    it('PATCH - Allows a comment to be voted down', () => request.patch('/api/articles/7659/comments/1').send({ inc_votes: -6 }).expect(201).then(({ body }) => {
+    it('PATCH - Allows a comment to be voted down', () => request.patch('/api/articles/7659/comments/1').send({ inc_votes: -6 }).expect(200).then(({ body }) => {
       expect(body.comment.votes).to.equal(10);
     }));
-    it('PATCH - empty body returns 201 and unmodified obj', () => request.patch('/api/articles/1/comments/1').send({ }).expect(201).then(({ body }) => {
+    it('PATCH - empty body returns 200 and unmodified obj', () => request.patch('/api/articles/1/comments/1').send({ }).expect(200).then(({ body }) => {
       expect(body.comment.votes).to.equal(16);
     }));
     it('PATCH - returns 404 if comment id does not exist', () => request.patch('/api/articles/2/comments/107').send({ inc_votes: 1 }).expect(404));

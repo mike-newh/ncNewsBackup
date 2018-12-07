@@ -9,6 +9,7 @@ exports.getAllTopics = (req, res, next) => connection.select('*').from('topics')
 
 exports.postTopic = (req, res, next) => {
   const { body } = req;
+  if (Object.keys(body).length !== 2 || body.slug === undefined || body.description === undefined) { return next({ status: 400, message: 'malformed body' }); }
   if (!isNaN(+body.slug)) { return next({ status: 400, message: 'malformed body' }); }
   connection('topics').insert(body).returning('*')
     .then(([topic]) => {
@@ -42,12 +43,14 @@ exports.getArticlesByTopic = (req, res, next) => {
     .then((articles) => {
       if (!articles.length) return next({ status: 404, message: 'Page not found' });
       res.status(200).json({ articles });
-    });
+    })
+    .catch(next);
 };
 
 exports.postArticleByTopic = (req, res, next) => {
   const newObj = JSON.parse(JSON.stringify(req.body));
-  if (!newObj.title || !newObj.body || !newObj.created_by) return next({ status: 400, message: 'Missing input field(s)' });
+  if (!newObj.title || !newObj.body || (newObj.created_by == undefined && newObj.user_id == undefined)) return next({ status: 400, message: 'Missing input field(s)' });
+  if (newObj.user_id) { newObj.created_by = newObj.user_id; delete newObj.user_id; }
   newObj.topic = req.params.topic;
   connection('articles').insert(newObj).returning('*')
     .then(([article]) => {
