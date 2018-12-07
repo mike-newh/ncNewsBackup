@@ -8,8 +8,8 @@ exports.getAllUsers = (req, res, next) => {
 
 exports.getUserById = (req, res, next) => {
   const { user_id } = req.params;
-  connection('users').where('user_id', user_id).then((user) => {
-    if (!user.length) return next({ status: 404, message: 'user not found' });
+  connection('users').where('user_id', user_id).then(([user]) => {
+    if (!user) return next({ status: 404, message: 'user not found' });
     res.status(200).json({ user });
   });
 };
