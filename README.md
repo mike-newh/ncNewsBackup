@@ -1,3 +1,19 @@
+# Northcoders News
+
+This backend api was constructed during the Northcoders coding bootcamp as a solo project to consolidate skills in NodeJS backend frameworks. Specifically, this api uses an Express server, which connects to a PostgreSQL database with the Knex module. The aim of the project was create a news aggregation website, similar in style to Reddit. As such, this api includes endpoints to post articles, comments and topic genres, as well as to vote on other user submissions
+
+A live instance of the api can be found at 
+> http://southcoders-news.herokuapp.com/api/
+
+A React frontend has subsequently been built to facilitate this api, which can be found:
+
+Deployed:
+> https://southcodersnews.netlify.com/
+
+Github:
+> https://github.com/mike-newh/NC-News-FrontEnd
+
+
 ## Endpoints
 
  This server hosts the following endpoints
